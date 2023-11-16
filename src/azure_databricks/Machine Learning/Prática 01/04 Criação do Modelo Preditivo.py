@@ -101,23 +101,29 @@ display(X_test)
 
 # COMMAND ----------
 
-X_test.iloc[0]
+X_test.iloc[2]
 
 # COMMAND ----------
 
-model.predict(X_test)[0]
+model.predict(X_test)[2]
 
 # COMMAND ----------
 
-model.predict_proba(X_test)[1]
+y_test.iloc[2]
 
 # COMMAND ----------
 
-1000*model.predict_proba(X_test)[1,0]
+model.predict_proba(X_test)[2]
 
 # COMMAND ----------
 
-y_test.iloc[1]
+# Score do cliente
+1000*model.predict_proba(X_test)[2,0]
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ##### Previsão em todos os dados do Treino
 
 # COMMAND ----------
 
@@ -126,7 +132,17 @@ y_pred = model.predict(X_test)
 
 # COMMAND ----------
 
-display(y_pred)
+print(y_test.iloc[0], y_pred[0])
+print(y_test.iloc[1], y_pred[1])
+print(y_test.iloc[2], y_pred[2])
+print(y_test.iloc[3], y_pred[3])
+print(y_test.iloc[4], y_pred[4])
+print(y_test.iloc[5], y_pred[5])
+print(y_test.iloc[6], y_pred[6])
+
+# COMMAND ----------
+
+accuracy_score(y_test, y_pred)
 
 # COMMAND ----------
 
@@ -150,6 +166,35 @@ plt.xlabel('Predito pelo Modelo')
 plt.ylabel('Inadimplentes reais')
 plt.title('Matriz de confusão')
 plt.show()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### Podemos medir o risco do nosso cliente em Ratings
+
+# COMMAND ----------
+
+# Definindo 4 ratings com qcut
+y_prob = model.predict_proba(X_test)[:, 1]
+#ratings, bins = pd.cut(y_prob, bins=8, labels=["H", "G", "F", "E", "D", "C", "B", "A"], retbins=True)
+ratings, bins = pd.qcut(y_prob, q=8, labels=["A", "B", "C", "D", "E", "F", "G", "H"], retbins=True)
+
+# Exibindo os limites dos bins para referência
+print("Limites dos Bins:", bins)
+
+# COMMAND ----------
+
+df_test = X_test.copy()
+df_test['y_true'] = y_test
+df_test['y_pred'] = y_pred
+df_test['y_prob'] = y_prob
+df_test['ratings'] = ratings
+
+display(df_test)
+
+# COMMAND ----------
+
+df_test.groupby('ratings')['y_prob'].mean().plot.bar()
 
 # COMMAND ----------
 
